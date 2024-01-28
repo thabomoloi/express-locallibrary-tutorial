@@ -38,8 +38,22 @@ const devDbUrl = "mongodb://127.0.0.1/local-library-devDB";
 const mongoDB = process.env.MONGODB_URI || devDbUrl;
 // Wait for database to connect, logging an error if there is a problem
 main().catch((err) => console.log(err));
+
 async function main() {
-	await mongoose.connect(mongoDB);
+	const clientOptions = {
+		serverApi: { version: "1", strict: true, deprecationErrors: true },
+	};
+	try {
+		// Create a Mongoose client with a MongoClientOptions object to set the Stable API version
+		await mongoose.connect(mongoDB, clientOptions);
+		await mongoose.connection.db.admin().command({ ping: 1 });
+		console.log(
+			"Pinged your deployment. You successfully connected to MongoDB!"
+		);
+	} finally {
+		// Ensures that the client will close when you finish/error
+		await mongoose.disconnect();
+	}
 }
 
 // view engine setup
